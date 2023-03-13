@@ -118,7 +118,7 @@ public void setGender(Boolean xGender){
 
 
 	public void imprimePaciente(){
-		System.out.print("Patient "+getId()+": ");
+		System.out.print("Patient "+getId()+" ");
 		if (this.getGender()) {
 			System.out.print("Female patient of " + getAge() + "years old. Diabetes " + this.getDiabetes() + ". Epoc= " + this.getEpoc());
 			System.out.println(". Hipertension=" + this.getHipertension() + ". Oxigenation=" + this.getOxigenation() + ".Height=" + this.getHeight() + ".Weight=" + this.getWeight());
