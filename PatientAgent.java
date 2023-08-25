@@ -149,11 +149,11 @@ public void setGender(Boolean xGender){
 	public void imprimePaciente(){
 	//	System.out.println("Patient "+getId());
 		if (this.getGender()) {
-			System.out.println("Female patient of " + getAge() + " years old. Arriving the day: "+this.getTime()+ " Diabetes:"+ this.getDiabetes() + ". Epoc= " + this.getEpoc());
+			System.out.println("Female patient " + getId() + " of " + getAge() + " years old. Arriving the day: "+this.getTime()+ " Diabetes:"+ this.getDiabetes() + ". Epoc= " + this.getEpoc());
 			//System.out.println(". Hipertension=" + this.getHipertension() + ". Oxigenation=" + this.getOxigenation() + ".Height=" + this.getHeight() + ".Weight=" + this.getWeight());
 		}
 		else{
-			System.out.println("Male patient of " +  getAge() + " years old. Arriving the day: "+this.getTime()+ " Diabetes: " + this.getDiabetes() + ". Epoc= " + this.getEpoc());
+			System.out.println("Male patient of " + getId() + " of " +  getAge() + " years old. Arriving the day: "+this.getTime()+ " Diabetes: " + this.getDiabetes() + ". Epoc= " + this.getEpoc());
 			//System.out.println(". Hipertension=" + this.getHipertension() + ". Oxigenation=" + this.getOxigenation() + ".Height=" + this.getHeight() + ".Weight=" + this.getWeight());
 		}
 	}
