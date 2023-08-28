@@ -36,7 +36,7 @@ public class Scheduler {
 
 
 	// Notice that we cannot access methods of patient simulation, only methods of Agent. How can we  use methods of inherated agentss
-	public int stepTwo(int day, int pos_Simulation) { //day is the step of simulation
+	public int execute(int day, int pos_Simulation) { //day is the step of simulation
 		int i=pos_Simulation;
 		int curDay=0;
 		int prevDay=0;
@@ -52,9 +52,10 @@ public class Scheduler {
 			if (type==2){
 				P=(PatientAgent) (A);
 				curDay=P.getTime();
-				if (curDay>prevDay){
-					P.setDelay(500);
+				/*if (curDay>prevDay){
+					P.setDelay(100);
 				}
+				 */
 				thread = new Thread((Runnable) P);
 				thread.start();
 				prevDay=curDay;

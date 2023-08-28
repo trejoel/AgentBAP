@@ -17,7 +17,7 @@ public class BedAgent extends Agent implements Runnable{
 	@Override
 	public void act() {
 		// TODO Auto-generated method stub
-		System.out.println("Bed ID = "+getId()+"\n");
+		System.out.println("Bed ID = "+getId()+" available at day "+this.getTime()+"\n");
 	}
 
 }
