@@ -80,6 +80,14 @@ public class Scheduler {
 	}
 
 
+
+	// In this we assign patient xPatient arriving at ith day is assigned at bed xBed. If it is assigned return true; otherwise return false
+	protected boolean assignBed(Agent xPatient, Agent xBed){
+		boolean assigned=false;
+		return assigned;
+	}
+
+
 	public void reset() {
 		queue.clear();
 	}

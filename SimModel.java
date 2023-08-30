@@ -33,7 +33,7 @@ public class SimModel {
 		int xTime=0;
 		int number_of_beds=10;
 		for(int i=0; i<number_of_beds; i++) {
-			Agent bed = new BedAgent(i,xTime);
+			Agent bed = new BedAgent(i,xTime,0);
 			bed.setType(1);
 			model.scheduler.add(bed);
 			beds.add(bed);
