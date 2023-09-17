@@ -13,6 +13,9 @@ public class PatientAgent extends Agent implements Runnable {
 	private int weight=70; // in kgs
 	private boolean newDay;
 	private boolean allocated;
+	private int arrivalDay;
+	private int departureDay;
+	private ExperimentRunConfiguration conf;
 
 
 
@@ -21,6 +24,7 @@ public class PatientAgent extends Agent implements Runnable {
 		this.newDay=xNewDay;
 		// TODO Auto-generated constructor stub
 		allocated = false;
+		conf=new ExperimentRunConfiguration(500,1);
 	}
 
 
@@ -37,9 +41,19 @@ public class PatientAgent extends Agent implements Runnable {
 		this.weight=xweight;
 		this.newDay=false;
 		this.allocated=false;
+		this.arrivalDay=this.departureDay=0;
+		conf=new ExperimentRunConfiguration(500,1);
 	}
 
 	//getters
+
+	public int getArrivalDay(){
+		return arrivalDay;
+	}
+
+	public int getDepartureDay(){
+		 return departureDay;
+	}
 
 	public int getAge(){
 		return this.age;
@@ -131,6 +145,25 @@ public void setGender(Boolean xGender){
 		}
 	}
 
+	public void setArrivalDay(int arrival){
+		if (arrival>0){
+			this.arrivalDay=arrival;
+		}
+		else{
+			this.arrivalDay=0;
+		}
+	}
+
+
+	public void setDepartureDay(int departure){
+		if (departure>=arrivalDay ){
+			this.departureDay=departure;
+		}
+		else{
+			this.arrivalDay=this.arrivalDay;
+		}
+	}
+
 	// Concurrent execution
 
 
@@ -149,11 +182,11 @@ public void setGender(Boolean xGender){
 	public void imprimePaciente(){
 	//	System.out.println("Patient "+getId());
 		if (this.getGender()) {
-			System.out.println("Female patient " + getId() + " of " + getAge() + " years old. Arriving the day: "+this.getTime()+ " Diabetes:"+ this.getDiabetes() + ". Epoc= " + this.getEpoc());
+			System.out.println("Female patient " + getId() + " of " + getAge() + " years old. Arriving the day: "+this.getArrivalDay()+ " leaving at:"+ this.getDepartureDay());
 			//System.out.println(". Hipertension=" + this.getHipertension() + ". Oxigenation=" + this.getOxigenation() + ".Height=" + this.getHeight() + ".Weight=" + this.getWeight());
 		}
 		else{
-			System.out.println("Male patient of " + getId() + " of " +  getAge() + " years old. Arriving the day: "+this.getTime()+ " Diabetes: " + this.getDiabetes() + ". Epoc= " + this.getEpoc());
+			System.out.println("Male patient of " + getId() + " of " +  getAge() + " years old. Arriving the day: "+this.getArrivalDay()+ " leaving at:"+ this.getDepartureDay());
 			//System.out.println(". Hipertension=" + this.getHipertension() + ". Oxigenation=" + this.getOxigenation() + ".Height=" + this.getHeight() + ".Weight=" + this.getWeight());
 		}
 	}
