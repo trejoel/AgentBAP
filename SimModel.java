@@ -25,6 +25,11 @@ public class SimModel {
 	}
 
 	public static void main(String[] args) {
+		SimModel sim=new SimModel();
+		sim.start();
+	}
+
+	public void start(){
 		// TODO Auto-generated method stub
 		Random ran = new Random();
 		int newDay=0;
@@ -36,39 +41,62 @@ public class SimModel {
 		//model.scheduler.addLast(patient);
 		ArrayList<Agent> beds = new ArrayList<Agent>();
 		int xTime=0;
-		int number_of_beds=10;
+		int number_of_beds=100;
 		for(int i=0; i<number_of_beds; i++) {
-			Agent bed = new BedAgent(i,xTime);
-			bed.setType(1);
-			((BedAgent)bed).setTypeBed(2);
-			model.scheduler.add(bed);
-			beds.add(bed);
+			if (xTime<=conf.getNumberOfDays()){
+				Agent bed = new BedAgent(i,xTime);
+				bed.setType(1);
+				int typeOfBed=ran.nextInt()%10;
+				int bedType;
+				if (typeOfBed<7){
+					bedType=0;
+				}
+				else{
+					bedType=1;
+				}
+				((BedAgent)bed).setTypeBed(bedType);
+				model.scheduler.add(bed);
+				beds.add(bed);
+			}
 		}
 		ArrayList<Agent> patients = new ArrayList<Agent>();
 		xTime=0;
-		int number_of_patients=100;
+		int depDay=0;
+		int number_of_patients=7000;
 		for(int i=0; i<number_of_patients; i++) {
 			//generate a random number to determine if it is a new day
 			newDay=ran.nextInt(10);
 			//if (i % 9 ==0 ){
 			if (newDay>8 ){
-				xTime++;
-				Agent patient = new PatientAgent(i,xTime,true);
-				patient.setType(2);
-				((PatientAgent)patient).setArrivalDay(xTime);
-				((PatientAgent)patient).setDepartureDay(xTime+ran.nextInt(10));
-				//patient.act();
-				model.scheduler.add(patient);
-				patients.add(patient);
+				if (xTime<(conf.getNumberOfDays()-1)) {
+					xTime++;
+					Agent patient = new PatientAgent(i, xTime, true);
+					patient.setType(2);
+					((PatientAgent) patient).setArrivalDay(xTime);
+					depDay=xTime + ran.nextInt(10);
+					if (depDay>=conf.getNumberOfDays()){
+						depDay=conf.getNumberOfDays()-1;
+					}
+					((PatientAgent) patient).setDepartureDay(depDay);
+					//patient.act();
+					model.scheduler.add(patient);
+					patients.add(patient);
+				}
 			}
 			else{
-				Agent patient = new PatientAgent(i,xTime,true);
-				patient.setType(2);
-				((PatientAgent)patient).setArrivalDay(xTime);
-				((PatientAgent)patient).setDepartureDay(xTime+ran.nextInt(10));
-				//patient.act();
-				model.scheduler.add(patient);
-				patients.add(patient);
+				if (xTime<conf.getNumberOfDays()) {
+					Agent patient = new PatientAgent(i, xTime, true);
+					patient.setType(2);
+					((PatientAgent) patient).setArrivalDay(xTime);
+					depDay=xTime + ran.nextInt(10);
+					if (depDay>=conf.getNumberOfDays()){
+						depDay=conf.getNumberOfDays()-1;
+					}
+					((PatientAgent) patient).setDepartureDay(depDay);
+					//patient.act();
+					model.scheduler.add(patient);
+					patients.add(patient);
+				}
 			}
 		}
 		int numSteps=0;

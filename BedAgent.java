@@ -2,7 +2,7 @@ package agentmodel;
 
 public class BedAgent extends Agent implements Runnable{
 
-	private int typeBed; // A bed is of type 0 (normal) 1 means
+	private int typeBed; // A bed is of type 0 (normal) 1 means (ventilation)
 	private boolean[] available; // Array of available days.  1 is available, 0 is not available
 	private ExperimentRunConfiguration conf;
 
@@ -41,6 +41,9 @@ public class BedAgent extends Agent implements Runnable{
 
 	public boolean isAvailable(int fromDay, int toDay){
 		boolean isAv=true;
+		if (toDay>conf.getNumberOfDays()){
+			toDay=conf.getNumberOfDays();
+		}
 		for (int i=fromDay; i<=toDay;i++){
 			if (!this.available[i]){
 				isAv=false;
@@ -55,14 +58,16 @@ public class BedAgent extends Agent implements Runnable{
 		int numberOfDays = computeNumberOfDays(p, p.getArrivalDay());
 		boolean assigned=true;
 		for (int i = 0; i <= numberOfDays; i++) {
-			if (this.available[xDay]) {
-				this.available[xDay] = false;
+			if (xDay<=conf.getNumberOfDays()){  //Avoiding to allocate a patient in a day greater than the simulation horizonts
+				if (this.available[xDay]) {
+					this.available[xDay] = false;
+				}
+				else{
+					// It is sufficient to make unavailable one single day to do not allocate
+					assigned=false;
+				}
+				xDay++;
 			}
-			else{
-				// It is sufficient to make unavailable one single day to do not allocate
-				assigned=false;
-			}
-			xDay++;
 		}
 		if (assigned){
 			p.allocate();

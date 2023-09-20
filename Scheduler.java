@@ -88,7 +88,7 @@ public class Scheduler {
 					curDay=P.getTime();
 					thread = new Thread((Runnable) P);
 					if (i==0){
-						P.setDelay(1000);
+						P.setDelay(10);
 					}
 					thread.start();
 					prevDay=curDay;
