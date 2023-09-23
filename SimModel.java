@@ -78,6 +78,9 @@ public class SimModel {
 						depDay=conf.getNumberOfDays()-1;
 					}
 					((PatientAgent) patient).setDepartureDay(depDay);
+					if (ran.nextInt(10)>7){
+						((PatientAgent) patient).setVentilationSupport();
+					}
 					//patient.act();
 					model.scheduler.add(patient);
 					patients.add(patient);
@@ -93,6 +96,9 @@ public class SimModel {
 						depDay=conf.getNumberOfDays()-1;
 					}
 					((PatientAgent) patient).setDepartureDay(depDay);
+					if (ran.nextInt(10)>7){
+						((PatientAgent) patient).setVentilationSupport();
+					}
 					//patient.act();
 					model.scheduler.add(patient);
 					patients.add(patient);

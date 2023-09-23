@@ -16,6 +16,7 @@ public class PatientAgent extends Agent implements Runnable {
 	private int arrivalDay;
 	private int departureDay;
 	private ExperimentRunConfiguration conf;
+	private boolean ventilationSupport;
 
 
 
@@ -43,6 +44,7 @@ public class PatientAgent extends Agent implements Runnable {
 		this.allocated=false;
 		this.arrivalDay=this.departureDay=0;
 		conf=new ExperimentRunConfiguration(500,1);
+		this.ventilationSupport=false;
 	}
 
 	//getters
@@ -53,6 +55,10 @@ public class PatientAgent extends Agent implements Runnable {
 
 	public int getDepartureDay(){
 		 return departureDay;
+	}
+
+	public boolean getRequiredVentilation(){
+		return this.ventilationSupport;
 	}
 
 	public int getAge(){
@@ -162,6 +168,10 @@ public void setGender(Boolean xGender){
 		else{
 			this.arrivalDay=this.arrivalDay;
 		}
+	}
+
+	public void setVentilationSupport(){
+		this.ventilationSupport=true;
 	}
 
 	// Concurrent execution

@@ -7,7 +7,8 @@ public class Scheduler {
 	private Agent last=null, first=null;
 	private long steps;
 	private ExperimentRunConfiguration conf;
-	private ArrayList<BedAgent> setBeds;
+	private ArrayList<BedAgent> setNormalBeds;
+	private ArrayList<BedAgent> setVentBeds;
 
 	Scheduler() {
 		steps=0;
@@ -44,14 +45,23 @@ public class Scheduler {
 	// We can see the set of agents by day of simulation
 
 
-	public ArrayList<BedAgent> getListOfBeds(){
+	public ArrayList<BedAgent> getListOfBeds(int Type){
 		ArrayList<BedAgent> setBeds=new ArrayList<BedAgent>();
 		Agent A;
 		int i=0;
 		while (i<queue.size()){
 			A=queue.get(i);
 			if (A.getType()==1){
-				setBeds.add((BedAgent) A);
+				if (Type==0){
+					if (((BedAgent)A).getTypeBed()==0){
+						setBeds.add((BedAgent) A);
+					}
+				}
+				else{
+					if (((BedAgent)A).getTypeBed()==1){
+						setBeds.add((BedAgent) A);
+					}
+				}
 			}
 			i++;
 		}
@@ -60,7 +70,8 @@ public class Scheduler {
 
 
 	public int execute(int day, int pos_Simulation) { //day is the step of simulation
-		setBeds=this.getListOfBeds();
+		setNormalBeds=this.getListOfBeds(0);
+		setVentBeds= this.getListOfBeds(1);
 		ArrayList<Agent> partialAgentList=new ArrayList<Agent>();
 		int i=pos_Simulation;
 		int curDay=0;
@@ -71,8 +82,10 @@ public class Scheduler {
 		PatientAgent P;
 		BedAgent B;
 		HospitalAgent H;
-		int posArrayBeds=0;
-		int xPosArray=0; //-1 if it is unassigned
+		int posArrayNormalBeds=0;
+		int posArrayVentBeds=0;
+		int xPosNArray=0; //-1 if it is unassigned
+		int xPosVArray=0; //-1 if it is unassigned
 		for (int xDay=0;xDay<conf.getNumberOfDays();xDay++){
 			//An alternative is the second parameter to be prevXday instead of pos_simulation. It requires the queue is sorted by day
 			partialAgentList=getAgentsByDay(xDay,pos_Simulation);
@@ -92,8 +105,17 @@ public class Scheduler {
 					}
 					thread.start();
 					prevDay=curDay;
-					xPosArray=assignBed(P,conf.getPolicyOfAssignment(),posArrayBeds);
-					posArrayBeds=xPosArray;
+					if (((PatientAgent)P).getRequiredVentilation()){
+						xPosVArray=assignBed(P,conf.getPolicyOfAssignment(),posArrayNormalBeds,posArrayVentBeds);
+						posArrayVentBeds=xPosVArray;
+						System.out.println("PosArrayVent: " +posArrayVentBeds);
+					}
+					else{
+						xPosNArray=assignBed(P,conf.getPolicyOfAssignment(),posArrayNormalBeds,posArrayVentBeds);
+						posArrayNormalBeds=xPosNArray;
+						System.out.println("PosArrayNorm: "+posArrayNormalBeds);
+
+					}
 				}
 				else if (type==1) { //This is a bed
 					B=(BedAgent) (A);
@@ -108,36 +130,6 @@ public class Scheduler {
 				i++;
 			}
 		}
-		/*
-		while (i<queue.size()){
-			A=(Agent) (queue.get(i));
-			type=A.getType();
-			if (type==2){
-				P=(PatientAgent) (A);
-				curDay=P.getTime();
-				/*if (curDay>prevDay){
-					P.setDelay(100);
-				}
-* //
-				thread = new Thread((Runnable) P);
-				thread.start();
-				prevDay=curDay;
-			}
-			else if (type==1) { //This is a bed
-				B=(BedAgent) (A);
-				thread = new Thread((Runnable) B);
-				thread.start();
-			}
-			else {
-				H=(HospitalAgent) (A);
-				thread = new Thread((Runnable) H);
-				thread.start();
-			}
-		/*	thread = new Thread((Runnable) A);
-			thread.start(); * //
-			//A.act();
-			i++;
-		}*/
 		return pos_Simulation;
 	}
 
@@ -159,16 +151,21 @@ public class Scheduler {
 
 
 	// In this we assign patient xPatient arriving at ith day is assigned at bed xBed. If it is assigned return true; otherwise return false
-	protected int assignBed(Agent xPatient,int xPolicy,int posArrayBed){
+	protected int assignBed(Agent xPatient,int xPolicy,int posArrayNormal,int posArrayVent){
 		int assigned=-1; //-1 is assigned is not assigned
 		switch (xPolicy){
-			case 1: assigned=roundRobin(xPatient,posArrayBed);
+			case 1: assigned=roundRobin(xPatient,posArrayNormal,posArrayVent);
 					if (assigned>=0){
-						System.out.println("Patient "+xPatient.getId()+" assigned to bed "+(setBeds.get(assigned)).getId()+" at day: "+((PatientAgent)xPatient).getArrivalDay());
+						if (((PatientAgent)xPatient).getRequiredVentilation()){
+							System.out.println("Patient "+xPatient.getId()+" assigned to bed "+(setVentBeds.get(assigned)).getId()+" at day: "+((PatientAgent)xPatient).getArrivalDay());
+						}
+						else{
+							System.out.println("Patient "+xPatient.getId()+" assigned to bed "+(setNormalBeds.get(assigned)).getId()+" at day: "+((PatientAgent)xPatient).getArrivalDay());
+
+						}
 					}else{
 					  System.out.println("No bed available for patient "+xPatient.getId()+" at day: "+((PatientAgent)xPatient).getArrivalDay());
 			        }
-
 					break;
 			default:
 				System.out.println("No se puede asignar");
@@ -178,29 +175,53 @@ public class Scheduler {
 	}
 
 
-  protected int roundRobin(Agent xPatient,int posArray){
+  protected int roundRobin(Agent xPatient,int posArrayNormal, int posArrayVentilation){
 		BedAgent xBed;
 		int assigned=-1; //-1 if it si not assigned
 	  	int i=0;
-	    int xPosArray;
-	    if (posArray>0){
-			xPosArray=posArray;
+	    int xPosArrayNormal;
+		int xPosArrayVentilation;
+	    if (posArrayNormal>0){
+			xPosArrayNormal=posArrayNormal;
 		}
 		else{
-			xPosArray=0;
+			xPosArrayNormal=0;
 		}
-		while (i<setBeds.size()){
-			xBed=setBeds.get(xPosArray);
-			if (xBed.isAvailable(((PatientAgent)xPatient).getArrivalDay(),((PatientAgent)xPatient).getDepartureDay())){
-				xBed.allocatePatient(((PatientAgent)xPatient));
-				i=setBeds.size();
-				return xPosArray;
-			}
-			else{
-				xPosArray=((xPosArray+1)%setBeds.size());
-				i++;
-			}
-		}
+	  if (posArrayVentilation>0){
+		  xPosArrayVentilation=posArrayVentilation;
+	  }
+	  else{
+		  xPosArrayVentilation=0;
+	  }
+	  if (((PatientAgent)xPatient).getRequiredVentilation()){
+		  while (i<setVentBeds.size()){
+			  xBed=setVentBeds.get(xPosArrayVentilation);
+			  if (xBed.isAvailable(((PatientAgent)xPatient).getArrivalDay(),((PatientAgent)xPatient).getDepartureDay())){
+				  xBed.allocatePatient(((PatientAgent)xPatient));
+				  i=setVentBeds.size();
+				  return xPosArrayVentilation;
+			  }
+			  else{
+				  xPosArrayVentilation=((xPosArrayVentilation+1)%setVentBeds.size());
+				  i++;
+			  }
+		  }
+	  }
+	  else{
+		  while (i<setNormalBeds.size()){
+			  xBed=setNormalBeds.get(xPosArrayNormal);
+			  if (xBed.isAvailable(((PatientAgent)xPatient).getArrivalDay(),((PatientAgent)xPatient).getDepartureDay())){
+				  xBed.allocatePatient(((PatientAgent)xPatient));
+				  i=setNormalBeds.size();
+				  return xPosArrayNormal;
+			  }
+			  else{
+				  xPosArrayNormal=((xPosArrayNormal+1)%setNormalBeds.size());
+				  i++;
+			  }
+		  }
+	  }
+
 		return -1;
   }
 
