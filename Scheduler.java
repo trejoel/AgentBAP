@@ -9,10 +9,18 @@ public class Scheduler {
 	private ExperimentRunConfiguration conf;
 	private ArrayList<BedAgent> setNormalBeds;
 	private ArrayList<BedAgent> setVentBeds;
+	private int unAssignedPatients;
+	private int AssignedPatients;
+	private int CorrectHospital;
+	private int WrongHospital;
 
 	Scheduler() {
 		steps=0;
 		conf=new ExperimentRunConfiguration(500,1,3);
+		unAssignedPatients=0;
+		AssignedPatients=0;
+		CorrectHospital=0;
+		WrongHospital=0;
 	}
 	
 	public void add(Agent agent) {
@@ -25,6 +33,23 @@ public class Scheduler {
 	
 	public void addFirst(Agent agent) {
 		first=agent;
+	}
+
+	public int getNumberOfNonAllocated(){
+		return this.unAssignedPatients;
+	}
+
+	public int getNumberOfAllocated(){
+		return AssignedPatients;
+	}
+
+
+	public int getNumberCorrectdHospital(){
+		return CorrectHospital;
+	}
+
+	public int getNumberWrongHospital(){
+		return WrongHospital;
 	}
 
 
@@ -130,6 +155,9 @@ public class Scheduler {
 				i++;
 			}
 		}
+		System.out.println("Assigned Patients:"+this.getNumberOfAllocated()+" and number of No Allocated Patients:"+getNumberOfNonAllocated());
+		System.out.println("Number of Patients Allocated to close hospital:"+getNumberCorrectdHospital());
+		System.out.println("Number of Patients Allocated to wrong hospital:"+getNumberWrongHospital());
 		return pos_Simulation;
 	}
 
@@ -157,13 +185,26 @@ public class Scheduler {
 			case 1: assigned=roundRobin(xPatient,posArrayNormal,posArrayVent);
 					if (assigned>=0){
 						if (((PatientAgent)xPatient).getRequiredVentilation()){
-							System.out.println("Patient "+xPatient.getId()+" assigned to bed "+(setVentBeds.get(assigned)).getId()+" at day: "+((PatientAgent)xPatient).getArrivalDay());
+							System.out.println("Patient "+xPatient.getId()+" whose close hospital is:"+((PatientAgent) xPatient).getCloserHospital()+" assigned to bed "+(setVentBeds.get(assigned)).getId()+ " From HOSPITAL:"+(setVentBeds.get(assigned)).getHospitalOfAllocation()+" at day: "+((PatientAgent)xPatient).getArrivalDay());
+						    if (((PatientAgent) xPatient).getCloserHospital()==(setVentBeds.get(assigned)).getHospitalOfAllocation()){
+	                           this.CorrectHospital++;
+							}
+							else{
+								this.WrongHospital++;
+							}
 						}
 						else{
-							System.out.println("Patient "+xPatient.getId()+" assigned to bed "+(setNormalBeds.get(assigned)).getId()+" at day: "+((PatientAgent)xPatient).getArrivalDay());
-
+							System.out.println("Patient "+xPatient.getId()+" whose close hospital is:"+((PatientAgent) xPatient).getCloserHospital()+" assigned to bed "+(setNormalBeds.get(assigned)).getId()+ " From HOSPITAL:"+(setNormalBeds.get(assigned)).getHospitalOfAllocation()+" at day: "+((PatientAgent)xPatient).getArrivalDay());
+							if (((PatientAgent) xPatient).getCloserHospital()==(setNormalBeds.get(assigned)).getHospitalOfAllocation()){
+								this.CorrectHospital++;
+							}
+							else{
+								this.WrongHospital++;
+							}
 						}
+						this.AssignedPatients++;
 					}else{
+						this.unAssignedPatients++;
 					  System.out.println("No bed available for patient "+xPatient.getId()+" at day: "+((PatientAgent)xPatient).getArrivalDay());
 			        }
 					break;

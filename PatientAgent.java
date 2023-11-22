@@ -65,6 +65,10 @@ public class PatientAgent extends Agent implements Runnable {
 		 return departureDay;
 	}
 
+	public int getCloserHospital(){
+		return this.closerHospital;
+	}
+
 	public boolean getRequiredVentilation(){
 		return this.ventilationSupport;
 	}
@@ -193,7 +197,7 @@ public void setGender(Boolean xGender){
 	@Override
 	public void act() {
 		// TODO Auto-generated method stub
-			imprimePaciente();
+			//imprimePaciente();
 	}
 
 
