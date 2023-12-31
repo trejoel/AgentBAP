@@ -41,7 +41,7 @@ public class SimModel {
 		//model.scheduler.addLast(patient);
 		ArrayList<Agent> beds = new ArrayList<Agent>();
 		int xTime=0;
-		int number_of_beds=100;
+		int number_of_beds=300;
 		for(int i=0; i<number_of_beds; i++) {
 			if (xTime<=conf.getNumberOfDays()){
 				Agent bed = new BedAgent(i,xTime);

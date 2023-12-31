@@ -98,6 +98,8 @@ public class Scheduler {
 		setNormalBeds=this.getListOfBeds(0);
 		setVentBeds= this.getListOfBeds(1);
 		ArrayList<Agent> partialAgentList=new ArrayList<Agent>();
+		ArrayList<Agent> partialPatientList=new ArrayList<Agent>();
+
 		int i=pos_Simulation;
 		int curDay=0;
 		int prevDay=0;
@@ -122,6 +124,11 @@ public class Scheduler {
 				A=(Agent) (partialAgentList.get(i));
 				type=A.getType();
 				if (type==2){
+					if (conf.getPolicyOfAssignment()==2){
+						int index=switch2BestFit(partialAgentList,i);
+						//Here we need to switch element i with element index
+						//Switch the most long stay with the current i
+					}
 					P=(PatientAgent) (A);
 					curDay=P.getTime();
 					thread = new Thread((Runnable) P);
@@ -161,6 +168,12 @@ public class Scheduler {
 		return pos_Simulation;
 	}
 
+
+	private ArrayList<Agent> sortAgents(int longStay){
+		//if longStay is true sort the long stays firsts
+		//otherwise if longStay is false sort the small stays first
+	}
+
 	private ArrayList<Agent> getAgentsByDay(int day,int pos){
 		ArrayList<Agent> partialAgentList=new ArrayList<Agent>();
 		int i=pos;
@@ -174,6 +187,23 @@ public class Scheduler {
 			i++;
 		}
 		return partialAgentList;
+	}
+
+	private int switch2BestFit(ArrayList<Agent> listAgents,int k){
+		Agent A;
+		int maxNumberDays=0;
+		int index=k;
+		for (int i=k; i<listAgents.size();i++){
+			A=(Agent) listAgents.get(i);
+			if (A.getType()==2){
+				PatientAgent P=(PatientAgent)A;
+				if (P.getDepartureDay()>maxNumberDays){
+					maxNumberDays=P.getDepartureDay();
+					index=i;
+				}
+			}
+		}
+		return index;
 	}
 
 
@@ -216,6 +246,65 @@ public class Scheduler {
 	}
 
 
+// First fit (Assign patient with largest stay time first at current time)
+
+//Worst fit (Assign the patient with smallest stay time first at current time)
+
+//First Fit Improved (Assign patient with largest stay time first)
+
+//Worst Fit Improved (Assign the patient with smallest stay time first such that patient.hospital = bed.hospital)
+
+
+protected int firstFit(Agent xPatient, int posArrayNormal, int posArrayVentilation){
+	BedAgent xBed;
+	int assigned=-1; //-1 if it si not assigned
+	int i=0;
+	int xPosArrayNormal;
+	int xPosArrayVentilation;
+	if (posArrayNormal>0){
+		xPosArrayNormal=posArrayNormal;
+	}
+	else{
+		xPosArrayNormal=0;
+	}
+	if (posArrayVentilation>0){
+		xPosArrayVentilation=posArrayVentilation;
+	}
+	else{
+		xPosArrayVentilation=0;
+	}
+	if (((PatientAgent)xPatient).getRequiredVentilation()){
+		while (i<setVentBeds.size()){
+			xBed=setVentBeds.get(xPosArrayVentilation);
+			if (xBed.isAvailable(((PatientAgent)xPatient).getArrivalDay(),((PatientAgent)xPatient).getDepartureDay())){
+				xBed.allocatePatient(((PatientAgent)xPatient));
+				i=setVentBeds.size();
+				return xPosArrayVentilation;
+			}
+			else{
+				xPosArrayVentilation=((xPosArrayVentilation+1)%setVentBeds.size());
+				i++;
+			}
+		}
+	}
+	else{
+		while (i<setNormalBeds.size()){
+			xBed=setNormalBeds.get(xPosArrayNormal);
+			if (xBed.isAvailable(((PatientAgent)xPatient).getArrivalDay(),((PatientAgent)xPatient).getDepartureDay())){
+				xBed.allocatePatient(((PatientAgent)xPatient));
+				i=setNormalBeds.size();
+				return xPosArrayNormal;
+			}
+			else{
+				xPosArrayNormal=((xPosArrayNormal+1)%setNormalBeds.size());
+				i++;
+			}
+		}
+	}
+
+	return -1;
+}
+
   protected int roundRobin(Agent xPatient,int posArrayNormal, int posArrayVentilation){
 		BedAgent xBed;
 		int assigned=-1; //-1 if it si not assigned
@@ -235,7 +324,9 @@ public class Scheduler {
 		  xPosArrayVentilation=0;
 	  }
 	  if (((PatientAgent)xPatient).getRequiredVentilation()){
+		  int bestVentilationBed=-1;
 		  while (i<setVentBeds.size()){
+			  //System.out.println("Ith"+i+" From "+setVentBeds.size());
 			  xBed=setVentBeds.get(xPosArrayVentilation);
 			  if (xBed.isAvailable(((PatientAgent)xPatient).getArrivalDay(),((PatientAgent)xPatient).getDepartureDay())){
 				  xBed.allocatePatient(((PatientAgent)xPatient));
