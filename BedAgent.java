@@ -1,4 +1,3 @@
-package agentmodel;
 import java.util.Random;
 
 

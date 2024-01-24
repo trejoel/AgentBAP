@@ -1,4 +1,3 @@
-package agentmodel;
 import java.util.Random;
 
 
@@ -33,6 +32,7 @@ public class PatientAgent extends Agent implements Runnable {
 		this.closerHospital=rand.nextInt(conf.getNumberOfHospitals())+1 ;
 
 	}
+
 
 
 	public PatientAgent(int id, int timeStep, int xage, Boolean xGender, Boolean xDiabetes, Boolean xHiper, Boolean xEpoc, int xoxigenation, int xheight, int xweight) {

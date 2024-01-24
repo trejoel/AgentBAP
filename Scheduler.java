@@ -1,5 +1,3 @@
-package agentmodel;
-
 import java.util.ArrayList;
 
 public class Scheduler {
@@ -94,11 +92,15 @@ public class Scheduler {
 	}
 
 
+	// Indicate that unassigned patients during the day of arrival remains unassigned since they are critical patients
 	public int execute(int day, int pos_Simulation) { //day is the step of simulation
 		setNormalBeds=this.getListOfBeds(0);
 		setVentBeds= this.getListOfBeds(1);
 		ArrayList<Agent> partialAgentList=new ArrayList<Agent>();
 		ArrayList<Agent> partialPatientList=new ArrayList<Agent>();
+		ArrayList<PatientAgent> auxPatientAgentList=new ArrayList<PatientAgent>();
+		ArrayList<Agent> auxNonPatientAgentList=new ArrayList<Agent>();
+
 
 		int i=pos_Simulation;
 		int curDay=0;
@@ -116,6 +118,20 @@ public class Scheduler {
 		for (int xDay=0;xDay<conf.getNumberOfDays();xDay++){
 			//An alternative is the second parameter to be prevXday instead of pos_simulation. It requires the queue is sorted by day
 			partialAgentList=getAgentsByDay(xDay,pos_Simulation);
+			auxPatientAgentList=getPatientsByDay(partialAgentList);
+			auxNonPatientAgentList=getNonPatientsByDay(partialAgentList);
+			if (conf.getPolicyOfAssignment()==1)//Round robin
+			{
+				partialAgentList.removeAll(partialPatientList);  //No los esta borrando
+				partialAgentList.addAll(auxNonPatientAgentList);
+				partialPatientList.addAll(auxPatientAgentList);
+			}
+			if (conf.getPolicyOfAssignment()==2){
+				//get from partialAgentList a list exclusively from patient agents
+				//Apply the function sortAgents, recall such function with a more appropiate name
+				//Here we need to switch element i with element index
+				//Switch the most long stay with the current i
+			}
 			i=0;
 			if (partialAgentList.size()==0){
 				System.out.println("No agents register the day "+xDay);
@@ -124,11 +140,6 @@ public class Scheduler {
 				A=(Agent) (partialAgentList.get(i));
 				type=A.getType();
 				if (type==2){
-					if (conf.getPolicyOfAssignment()==2){
-						int index=switch2BestFit(partialAgentList,i);
-						//Here we need to switch element i with element index
-						//Switch the most long stay with the current i
-					}
 					P=(PatientAgent) (A);
 					curDay=P.getTime();
 					thread = new Thread((Runnable) P);
@@ -169,10 +180,26 @@ public class Scheduler {
 	}
 
 
-	private ArrayList<Agent> sortAgents(int longStay){
-		//if longStay is true sort the long stays firsts
+	private ArrayList<PatientAgent> sortAgents(int longStay, ArrayList<PatientAgent> list){
+		//if longStay is true sort the long stays firsts (the patients with departure day longest are at first)
 		//otherwise if longStay is false sort the small stays first
+		int n=list.size();
+		for (int i=0;i<n-1;i++){
+			int min_idx=i;
+			for (int j=i+1; j<n; j++){
+				if (list.get(j).getDepartureDay()<list.get(min_idx).getDepartureDay()){
+						min_idx=j;
+				}
+				PatientAgent p_min=list.get(min_idx);
+				PatientAgent p_i=list.get(i);
+				list.set(min_idx,p_i);
+				list.set(i,p_min);
+			}
+		}
+		return list;
 	}
+
+
 
 	private ArrayList<Agent> getAgentsByDay(int day,int pos){
 		ArrayList<Agent> partialAgentList=new ArrayList<Agent>();
@@ -187,6 +214,31 @@ public class Scheduler {
 			i++;
 		}
 		return partialAgentList;
+	}
+
+	private ArrayList<PatientAgent> getPatientsByDay(ArrayList<Agent> list){
+		Agent A;
+		ArrayList<PatientAgent> auxPatientAgentList=new ArrayList<PatientAgent>();
+		for (int i=0;i<list.size();i++){
+			A=(Agent)list.get(i);
+			if (A.getType()==2){
+				auxPatientAgentList.add((PatientAgent)A);
+			}
+		}
+		return auxPatientAgentList;
+	}
+
+
+	private ArrayList<Agent> getNonPatientsByDay(ArrayList<Agent> list){
+		Agent A;
+		ArrayList<Agent> auxNonPatientAgentList=new ArrayList<Agent>();
+		for (int i=0;i<list.size();i++){
+			A=(Agent)list.get(i);
+			if (A.getType()!=2){
+				auxNonPatientAgentList.add(A);
+			}
+		}
+		return auxNonPatientAgentList;
 	}
 
 	private int switch2BestFit(ArrayList<Agent> listAgents,int k){

@@ -1,8 +1,5 @@
-package agentmodel;
-
 import java.util.ArrayList;
 import java.util.Random;
-import agentmodel.*;
 
 
 public class SimModel {

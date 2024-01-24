@@ -1,5 +1,3 @@
-package agentmodel;
-import agentmodel.ExperimentRunConfiguration;
 
 
 public class Environment {

@@ -1,5 +1,3 @@
-package agentmodel;
-
 public class HospitalAgent extends Agent implements Runnable {
 
 	private ExperimentRunConfiguration conf;

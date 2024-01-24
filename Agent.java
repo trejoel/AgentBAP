@@ -1,9 +1,6 @@
-package agentmodel;
 
 
 //Include for each agent a day of arrival and a day of remove. At the scheduler day by day perform a mechanism to include and remove daily all the agents needed to be removed
-
-import org.apache.commons.math3.analysis.function.Exp;
 
 public abstract class Agent {
 	private int id;
