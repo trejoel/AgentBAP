@@ -1,9 +1,10 @@
-package agentmodel;
-
 public class HospitalAgent extends Agent implements Runnable {
 
-	public HospitalAgent(int id) {
-		super(id);
+	private ExperimentRunConfiguration conf;
+
+	public HospitalAgent(int id,int timeStep) {
+		super(id,timeStep);
+		conf=new ExperimentRunConfiguration(500,1,3);
 		// TODO Auto-generated constructor stub
 	}
 
@@ -13,6 +14,7 @@ public class HospitalAgent extends Agent implements Runnable {
 	public void run(){
 	   act();
 	}
+
 
 
 	@Override
