@@ -121,7 +121,12 @@ public class PatientAgent extends Agent implements Runnable {
 
 	// Setters
 
-public void setAge(int xAge){
+
+	public void setCloserHospital(int closerHospital) {
+			this.closerHospital = closerHospital;
+	}
+
+	public void setAge(int xAge){
 		this.age=xAge;
 }
 

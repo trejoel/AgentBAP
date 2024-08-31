@@ -14,7 +14,10 @@ public class Scheduler {
 
 	Scheduler() {
 		steps=0;
-		conf=new ExperimentRunConfiguration(500,1,3);
+		conf=new ExperimentRunConfiguration(500,1,3); // Round Robin
+		//conf=new ExperimentRunConfiguration(500,2,3); // Longest stay
+		//conf=new ExperimentRunConfiguration(500,3,3); // Shortest stay
+		//conf=new ExperimentRunConfiguration(500,1,3,intance); //Asi debe pasarse
 		unAssignedPatients=0;
 		AssignedPatients=0;
 		CorrectHospital=0;
@@ -93,7 +96,7 @@ public class Scheduler {
 
 
 	// Indicate that unassigned patients during the day of arrival remains unassigned since they are critical patients
-	public int execute(int day, int pos_Simulation) { //day is the step of simulation
+	public void execute(int day) { //day is the step of simulation
 		setNormalBeds=this.getListOfBeds(0);
 		setVentBeds= this.getListOfBeds(1);
 		ArrayList<Agent> partialAgentList=new ArrayList<Agent>();
@@ -102,7 +105,7 @@ public class Scheduler {
 		ArrayList<Agent> auxNonPatientAgentList=new ArrayList<Agent>();
 
 
-		int i=pos_Simulation;
+		int i=0;
 		int curDay=0;
 		int prevDay=0;
 		int type=0;
@@ -117,16 +120,33 @@ public class Scheduler {
 		int xPosVArray=0; //-1 if it is unassigned
 		for (int xDay=0;xDay<conf.getNumberOfDays();xDay++){
 			//An alternative is the second parameter to be prevXday instead of pos_simulation. It requires the queue is sorted by day
-			partialAgentList=getAgentsByDay(xDay,pos_Simulation);
+			partialAgentList=getAgentsByDay(xDay);
 			auxPatientAgentList=getPatientsByDay(partialAgentList);
 			auxNonPatientAgentList=getNonPatientsByDay(partialAgentList);
 			if (conf.getPolicyOfAssignment()==1)//Round robin
 			{
-				partialAgentList.removeAll(partialPatientList);  //No los esta borrando
+				partialAgentList.clear();
 				partialAgentList.addAll(auxNonPatientAgentList);
-				partialPatientList.addAll(auxPatientAgentList);
+				for (int ll=0;ll<auxPatientAgentList.size();ll++){
+					A=(Agent)auxPatientAgentList.get(ll);
+					partialAgentList.add(A);
+				}
 			}
-			if (conf.getPolicyOfAssignment()==2){
+			if (conf.getPolicyOfAssignment()==2){ // Long Stay first
+				partialAgentList.clear();
+				partialAgentList.addAll(auxNonPatientAgentList);
+				auxPatientAgentList=this.sortAgents(1,auxPatientAgentList);
+				partialAgentList.addAll(auxPatientAgentList);
+				//get from partialAgentList a list exclusively from patient agents
+				//Apply the function sortAgents, recall such function with a more appropiate name
+				//Here we need to switch element i with element index
+				//Switch the most long stay with the current i
+			}
+			if (conf.getPolicyOfAssignment()==3){  //Short stay first
+				partialAgentList.clear();
+				partialAgentList.addAll(auxNonPatientAgentList);
+				auxPatientAgentList=this.sortAgents(0,auxPatientAgentList);
+				partialAgentList.addAll(auxPatientAgentList);
 				//get from partialAgentList a list exclusively from patient agents
 				//Apply the function sortAgents, recall such function with a more appropiate name
 				//Here we need to switch element i with element index
@@ -176,19 +196,24 @@ public class Scheduler {
 		System.out.println("Assigned Patients:"+this.getNumberOfAllocated()+" and number of No Allocated Patients:"+getNumberOfNonAllocated());
 		System.out.println("Number of Patients Allocated to close hospital:"+getNumberCorrectdHospital());
 		System.out.println("Number of Patients Allocated to wrong hospital:"+getNumberWrongHospital());
-		return pos_Simulation;
 	}
 
 
 	private ArrayList<PatientAgent> sortAgents(int longStay, ArrayList<PatientAgent> list){
-		//if longStay is true sort the long stays firsts (the patients with departure day longest are at first)
-		//otherwise if longStay is false sort the small stays first
+		//if longStay is 1 sort the long stays firsts (the patients with departure day longest are at first)
+		//otherwise if longStay is 0 it sort the small stays first
 		int n=list.size();
 		for (int i=0;i<n-1;i++){
 			int min_idx=i;
 			for (int j=i+1; j<n; j++){
-				if (list.get(j).getDepartureDay()<list.get(min_idx).getDepartureDay()){
+				if (longStay==1){
+					if (list.get(j).getDepartureDay()>list.get(min_idx).getDepartureDay()){
 						min_idx=j;
+					}
+				}else{ //longStay==0
+					if (list.get(j).getDepartureDay()<list.get(min_idx).getDepartureDay()){
+						min_idx=j;
+					}
 				}
 				PatientAgent p_min=list.get(min_idx);
 				PatientAgent p_i=list.get(i);
@@ -201,9 +226,9 @@ public class Scheduler {
 
 
 
-	private ArrayList<Agent> getAgentsByDay(int day,int pos){
+	private ArrayList<Agent> getAgentsByDay(int day){
 		ArrayList<Agent> partialAgentList=new ArrayList<Agent>();
-		int i=pos;
+		int i=0;
 		Agent A;
 		while (i<queue.size()){
 			A=(Agent) (queue.get(i));
@@ -290,6 +315,58 @@ public class Scheduler {
 					  System.out.println("No bed available for patient "+xPatient.getId()+" at day: "+((PatientAgent)xPatient).getArrivalDay());
 			        }
 					break;
+			case 2: assigned=roundRobin(xPatient,posArrayNormal,posArrayVent);
+				if (assigned>=0){
+					if (((PatientAgent)xPatient).getRequiredVentilation()){
+						System.out.println("Patient "+xPatient.getId()+" whose close hospital is:"+((PatientAgent) xPatient).getCloserHospital()+" assigned to bed "+(setVentBeds.get(assigned)).getId()+ " From HOSPITAL:"+(setVentBeds.get(assigned)).getHospitalOfAllocation()+" at day: "+((PatientAgent)xPatient).getArrivalDay());
+						if (((PatientAgent) xPatient).getCloserHospital()==(setVentBeds.get(assigned)).getHospitalOfAllocation()){
+							this.CorrectHospital++;
+						}
+						else{
+							this.WrongHospital++;
+						}
+					}
+					else{
+						System.out.println("Patient "+xPatient.getId()+" whose close hospital is:"+((PatientAgent) xPatient).getCloserHospital()+" assigned to bed "+(setNormalBeds.get(assigned)).getId()+ " From HOSPITAL:"+(setNormalBeds.get(assigned)).getHospitalOfAllocation()+" at day: "+((PatientAgent)xPatient).getArrivalDay());
+						if (((PatientAgent) xPatient).getCloserHospital()==(setNormalBeds.get(assigned)).getHospitalOfAllocation()){
+							this.CorrectHospital++;
+						}
+						else{
+							this.WrongHospital++;
+						}
+					}
+					this.AssignedPatients++;
+				}else{
+					this.unAssignedPatients++;
+					System.out.println("No bed available for patient "+xPatient.getId()+" at day: "+((PatientAgent)xPatient).getArrivalDay());
+				}
+				break;
+			case 3: assigned=roundRobin(xPatient,posArrayNormal,posArrayVent);
+				if (assigned>=0){
+					if (((PatientAgent)xPatient).getRequiredVentilation()){
+						System.out.println("Patient "+xPatient.getId()+" whose close hospital is:"+((PatientAgent) xPatient).getCloserHospital()+" assigned to bed "+(setVentBeds.get(assigned)).getId()+ " From HOSPITAL:"+(setVentBeds.get(assigned)).getHospitalOfAllocation()+" at day: "+((PatientAgent)xPatient).getArrivalDay());
+						if (((PatientAgent) xPatient).getCloserHospital()==(setVentBeds.get(assigned)).getHospitalOfAllocation()){
+							this.CorrectHospital++;
+						}
+						else{
+							this.WrongHospital++;
+						}
+					}
+					else{
+						System.out.println("Patient "+xPatient.getId()+" whose close hospital is:"+((PatientAgent) xPatient).getCloserHospital()+" assigned to bed "+(setNormalBeds.get(assigned)).getId()+ " From HOSPITAL:"+(setNormalBeds.get(assigned)).getHospitalOfAllocation()+" at day: "+((PatientAgent)xPatient).getArrivalDay());
+						if (((PatientAgent) xPatient).getCloserHospital()==(setNormalBeds.get(assigned)).getHospitalOfAllocation()){
+							this.CorrectHospital++;
+						}
+						else{
+							this.WrongHospital++;
+						}
+					}
+					this.AssignedPatients++;
+				}else{
+					this.unAssignedPatients++;
+					System.out.println("No bed available for patient "+xPatient.getId()+" at day: "+((PatientAgent)xPatient).getArrivalDay());
+				}
+				break;
 			default:
 				System.out.println("No se puede asignar");
 				break;
@@ -309,7 +386,7 @@ public class Scheduler {
 
 protected int firstFit(Agent xPatient, int posArrayNormal, int posArrayVentilation){
 	BedAgent xBed;
-	int assigned=-1; //-1 if it si not assigned
+	int assigned=-1; //-1 if it iss not assigned
 	int i=0;
 	int xPosArrayNormal;
 	int xPosArrayVentilation;
