@@ -39,8 +39,9 @@ public class SimModel {
 	public static void main(String[] args) throws IOException, CsvValidationException {
 		//Utilerias ut=new Utilerias("testInstance.csv");
 		SimModel sim=new SimModel();
-		Utilerias ut=new Utilerias("testInstance.csv");
-		sim.backstart();
+		sim.start();
+		//sim.generate();
+		//sim.backstart();
 		//get hospitalagent
 		//get bedagents
 		//get PatientListagent
@@ -135,119 +136,28 @@ public class SimModel {
 
 	}
 
+
 	//update the start so that we include first hospital agents, then bed agents and later patient agents. According to list of agents
 
-	public void start()  {
+	public void start() throws CsvValidationException, IOException {
 		// TODO Auto-generated method stub
 		//Dterminar para que se usa posSimulation
 		// Cargar todos los agentes
-		try {
-			FileWriter xFile = new FileWriter("testInstance.csv");
-			CSVWriter writer = new CSVWriter(xFile);
-			String[] header;
-			header= new String[]{"Type", "Id", "Day", "BedorPatientType", "CloserHospital", "LOS"};
-			writer.writeNext(header);
-			Random ran = new Random();
-			int newDay=0;
-			SimModel model=new SimModel(); //Get list of hospitals from csv
-			Agent hospital =  new HospitalAgent(100,0);
-			String[] row;
-			row=new String[]{String.valueOf(hospital.getType()),String.valueOf(hospital.getId()),String.valueOf(0),"NA",String.valueOf(hospital.getId()),String.valueOf(conf.getNumberOfDays())};
-			writer.writeNext(row);
-			hospital.setType(3);
-			model.scheduler.add(hospital);
-			//Agent patient = new PatientAgent(200,0);
-			//model.scheduler.addLast(patient);
-			ArrayList<Agent> beds = new ArrayList<Agent>();
-			int xTime=0;
-			int number_of_beds=300; //getListOfBeds from csv maybe in a Utils file
-			for(int i=0; i<number_of_beds; i++) {
-				if (xTime<=conf.getNumberOfDays()){
-					Agent bed = new BedAgent(i,xTime);
-					bed.setType(1);
-					int typeOfBed=ran.nextInt()%10;
-					int bedType;
-					if (typeOfBed<7){
-						bedType=0;
-					}
-					else{
-						bedType=1;
-					}
-					((BedAgent)bed).setTypeBed(bedType);
-					int closerHospital=ran.nextInt()%3;
-					if (closerHospital<0){
-						closerHospital=closerHospital*-1;
-					}
-					((BedAgent)bed).setHospitalOfAllocation(closerHospital);
-					//{"Type","Id","Day","BedType","CloserHospital","LOS"};
-					model.scheduler.add(bed);
-					beds.add(bed);
-					row=new String[]{"1",String.valueOf(i),String.valueOf(xTime),String.valueOf(bed.getType()),String.valueOf(((BedAgent) bed).getHospitalOfAllocation()),"500"};
-					writer.writeNext(row);
-				}
-			}
-			ArrayList<Agent> patients = new ArrayList<Agent>();
-			xTime=0;
-			int depDay=0;
-			int number_of_patients=7000; //Get the patients and sort by arriving day
-			for(int i=0; i<number_of_patients; i++) {
-				//generate a random number to determine if it is a new day
-				newDay=ran.nextInt(10);
-				//if (i % 9 ==0 ){
-				if (newDay>8 ){
-					if (xTime<(conf.getNumberOfDays()-1)) {
-						xTime++;
-						Agent patient = new PatientAgent(i, xTime, true);
-						patient.setType(2);
-						((PatientAgent) patient).setArrivalDay(xTime);
-						depDay=xTime + ran.nextInt(10);
-						if (depDay>=conf.getNumberOfDays()){
-							depDay=conf.getNumberOfDays()-1;
-						}
-						((PatientAgent) patient).setDepartureDay(depDay);
-						if (ran.nextInt(10)>7){
-							((PatientAgent) patient).setVentilationSupport();
-						}
-						//patient.act();
-						model.scheduler.add(patient);
-						patients.add(patient);
-						//{"Type","Id","Day","BedType","CloserHospital","LOS"};
-						row=new String[]{"2",String.valueOf(i),String.valueOf(((PatientAgent) patient).getArrivalDay()),String.valueOf(((PatientAgent) patient).getRequiredVentilation()),String.valueOf(((PatientAgent) patient).getCloserHospital()),String.valueOf(((PatientAgent) patient).getDepartureDay())};
-						writer.writeNext(row);
-					}
-				}
-				else{
-					if (xTime<conf.getNumberOfDays()) {
-						Agent patient = new PatientAgent(i, xTime, true);
-						patient.setType(2);
-						((PatientAgent) patient).setArrivalDay(xTime);
-						depDay=xTime + ran.nextInt(10);
-						if (depDay>=conf.getNumberOfDays()){
-							depDay=conf.getNumberOfDays()-1;
-						}
-						((PatientAgent) patient).setDepartureDay(depDay);
-						if (ran.nextInt(10)>7){
-							((PatientAgent) patient).setVentilationSupport();
-						}
-						//patient.act();
-						model.scheduler.add(patient);
-						patients.add(patient);
-						//{"Type","Id","Day","BedType","CloserHospital","LOS"};
-						row=new String[]{"2",String.valueOf(i),String.valueOf(((PatientAgent) patient).getArrivalDay()),String.valueOf(((PatientAgent) patient).getRequiredVentilation()),String.valueOf(((PatientAgent) patient).getCloserHospital()),String.valueOf(((PatientAgent) patient).getDepartureDay())};
-						writer.writeNext(row);
-					}
-				}
-			}
-			int numSteps=0;
-			int simulationSteps=11;
-			model.scheduler.execute(0);
-			writer.close();
+		SimModel model=new SimModel();
+		Utilerias ut=new Utilerias("testInstance.csv");
+		this.hospital=ut.getHospital();
+		for (int i=0; i<hospital.size(); i++) {
+			model.scheduler.add(hospital.get(i));
 		}
-		catch (IOException e){
-			System.out.println("Error creating file");
-			e.printStackTrace();
+		this.bed=ut.getBedAgent();
+		for (int i=0; i<bed.size(); i++) {
+			model.scheduler.add(bed.get(i));
 		}
-
+		this.patient=ut.getPatient(); //A todos los pacientes los pone que llegan el dia 0. Hay que actualizar esto.
+		for (int i=0; i<patient.size(); i++) {
+			model.scheduler.add(patient.get(i));
+		}
+		model.scheduler.execute(0);
 	}
 
 
@@ -296,7 +206,7 @@ public class SimModel {
 					//{"Type","Id","Day","BedType","CloserHospital","LOS"};
 					model.scheduler.add(bed);
 					beds.add(bed);
-					row=new String[]{"1",String.valueOf(i),String.valueOf(xTime),String.valueOf(bed.getType()),String.valueOf(((BedAgent) bed).getHospitalOfAllocation()),"500"};
+					row=new String[]{"1",String.valueOf(i),String.valueOf(xTime),String.valueOf(bedType),String.valueOf(((BedAgent) bed).getHospitalOfAllocation()),"500"};
 					writer.writeNext(row);
 				}
 			}

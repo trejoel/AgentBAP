@@ -52,6 +52,7 @@ public class Utilerias {
                     int idAgent=Integer.parseInt(record[1]);
                     int timeArrival=Integer.parseInt(record[2]);
                     HospitalAgent HA=new HospitalAgent(idAgent,timeArrival);
+                    HA.setType(0);
                     this.hospital.add(HA);
                 }
                 else if (record[0].equals("1")){
@@ -60,7 +61,8 @@ public class Utilerias {
                     int typeOfBed=Integer.parseInt(record[3]);
                     int CloserHospital=Integer.parseInt(record[4]);
                     BedAgent BA=new BedAgent(idAgent,timeArrival);
-                    BA.setType(typeOfBed);
+                    BA.setType(1);
+                    BA.setTypeBed(typeOfBed);
                     BA.setHospitalOfAllocation(CloserHospital);
                     this.bed.add(BA);
                 }
@@ -69,13 +71,14 @@ public class Utilerias {
                     int timeArrival=Integer.parseInt(record[2]);
                     int typeOfPatient=0;
                     Boolean type=Boolean.parseBoolean(record[3]);
-                    if (type.equals(Boolean.TRUE)){
-                        typeOfPatient=1;
-                    }
                     int CloserHospital=Integer.parseInt(record[4]);
                     int dayOfDeparture=Integer.parseInt(record[5]);
                     PatientAgent PA=new PatientAgent(idAgent,timeArrival,true);
-                    PA.setType(typeOfPatient);
+                    PA.setType(2);
+                    PA.setArrivalDay(timeArrival);
+                    if (type.equals(Boolean.TRUE)){
+                        PA.setVentilationSupport();
+                    }
                     PA.setCloserHospital(CloserHospital);
                     PA.setDepartureDay(dayOfDeparture);
                     this.patient.add(PA);
