@@ -1,4 +1,5 @@
-package agentmodel;
+import java.util.Random;
+
 
 
 public class PatientAgent extends Agent implements Runnable {
@@ -16,20 +17,27 @@ public class PatientAgent extends Agent implements Runnable {
 	private int arrivalDay;
 	private int departureDay;
 	private ExperimentRunConfiguration conf;
+	private boolean ventilationSupport;
+	private int closerHospital;
 
 
 
 	public PatientAgent(int id, int timeStep,boolean xNewDay) {
 		super(id,timeStep);
+		Random rand=new Random();
 		this.newDay=xNewDay;
 		// TODO Auto-generated constructor stub
 		allocated = false;
-		conf=new ExperimentRunConfiguration(500,1);
+		conf=new ExperimentRunConfiguration(100,1,3,100, 500);
+		this.closerHospital=rand.nextInt(conf.getNumberOfHospitals())+1 ;
+
 	}
+
 
 
 	public PatientAgent(int id, int timeStep, int xage, Boolean xGender, Boolean xDiabetes, Boolean xHiper, Boolean xEpoc, int xoxigenation, int xheight, int xweight) {
 		super(id,timeStep);
+		Random rand=new Random();
 		// TODO Auto-generated constructor stub
 		this.age=xage;
 		this.gender=xGender;
@@ -42,7 +50,9 @@ public class PatientAgent extends Agent implements Runnable {
 		this.newDay=false;
 		this.allocated=false;
 		this.arrivalDay=this.departureDay=0;
-		conf=new ExperimentRunConfiguration(500,1);
+		conf=new ExperimentRunConfiguration(20,1,3,100, 500);
+		this.ventilationSupport=false;
+		this.closerHospital=rand.nextInt(conf.getNumberOfHospitals())+1 ;
 	}
 
 	//getters
@@ -53,6 +63,14 @@ public class PatientAgent extends Agent implements Runnable {
 
 	public int getDepartureDay(){
 		 return departureDay;
+	}
+
+	public int getCloserHospital(){
+		return this.closerHospital;
+	}
+
+	public boolean getRequiredVentilation(){
+		return this.ventilationSupport;
 	}
 
 	public int getAge(){
@@ -103,7 +121,12 @@ public class PatientAgent extends Agent implements Runnable {
 
 	// Setters
 
-public void setAge(int xAge){
+
+	public void setCloserHospital(int closerHospital) {
+			this.closerHospital = closerHospital;
+	}
+
+	public void setAge(int xAge){
 		this.age=xAge;
 }
 
@@ -164,6 +187,10 @@ public void setGender(Boolean xGender){
 		}
 	}
 
+	public void setVentilationSupport(){
+		this.ventilationSupport=true;
+	}
+
 	// Concurrent execution
 
 
@@ -175,18 +202,18 @@ public void setGender(Boolean xGender){
 	@Override
 	public void act() {
 		// TODO Auto-generated method stub
-			imprimePaciente();
+			//imprimePaciente();
 	}
 
 
 	public void imprimePaciente(){
 	//	System.out.println("Patient "+getId());
 		if (this.getGender()) {
-			System.out.println("Female patient " + getId() + " of " + getAge() + " years old. Arriving the day: "+this.getArrivalDay()+ " leaving at:"+ this.getDepartureDay());
+			System.out.println("Female patient " + getId() + " of " + getAge() + " years old. Arriving the day: "+this.getArrivalDay()+ " leaving at:"+ this.getDepartureDay()+ " Closer hospital: "+this.closerHospital);
 			//System.out.println(". Hipertension=" + this.getHipertension() + ". Oxigenation=" + this.getOxigenation() + ".Height=" + this.getHeight() + ".Weight=" + this.getWeight());
 		}
 		else{
-			System.out.println("Male patient of " + getId() + " of " +  getAge() + " years old. Arriving the day: "+this.getArrivalDay()+ " leaving at:"+ this.getDepartureDay());
+			System.out.println("Male patient of " + getId() + " of " +  getAge() + " years old. Arriving the day: "+this.getArrivalDay()+ " leaving at:"+ this.getDepartureDay()+ " Closer hospital: "+this.closerHospital);
 			//System.out.println(". Hipertension=" + this.getHipertension() + ". Oxigenation=" + this.getOxigenation() + ".Height=" + this.getHeight() + ".Weight=" + this.getWeight());
 		}
 	}

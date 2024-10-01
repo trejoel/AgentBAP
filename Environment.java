@@ -1,5 +1,3 @@
-package agentmodel;
-import agentmodel.ExperimentRunConfiguration;
 
 
 public class Environment {
@@ -7,7 +5,7 @@ public class Environment {
     private ExperimentRunConfiguration conf;
 
     public Environment(){
-    conf=new ExperimentRunConfiguration(500,1);
+        conf=new ExperimentRunConfiguration(20,1,3,100, 500);
 }
 
 
